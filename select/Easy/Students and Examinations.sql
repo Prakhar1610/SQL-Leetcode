@@ -117,3 +117,118 @@ ON s.student_id = e.student_id
 AND sub.subject_name = e.subject_name
 GROUP BY s.student_id, s.student_name, sub.subject_name
 ORDER BY s.student_id, sub.subject_name;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+🟢 Question: Customers and Products Purchase Report
+🧱 Table: Customers
+Column Name	Type
+customer_id	int
+customer_name	varchar
+
+customer_id is the primary key.
+
+Each row represents a unique customer.
+
+🧱 Table: Products
+Column Name	Type
+product_name	varchar
+
+product_name is the primary key.
+
+Each row represents a unique product.
+
+🧱 Table: Purchases
+Column Name	Type
+customer_id	int
+product_name	varchar
+
+This table may contain duplicates.
+
+Each row indicates that a customer purchased a product.
+
+A customer can purchase the same product multiple times.
+
+Some customers may never purchase certain products.
+
+🎯 Problem Statement
+
+Write an SQL query to find the total number of times each customer purchased each product.
+
+Return the result table with the following columns:
+
+| customer_id | customer_name | product_name | total_purchases |
+
+Requirements:
+
+The result must contain every customer and every product combination, even if the customer never purchased the product.
+
+If a customer has never purchased a product, return 0 for that product.
+
+Order the result by:
+
+customer_id ascending
+
+product_name ascending
+
+📌 Example
+Input:
+Customers
+customer_id	customer_name
+1	         Aman
+2	         Riya
+3	         Kabir
+4	         Neha
+
+Products
+product_name
+Laptop
+Phone
+Tablet
+
+Purchases
+customer_id	product_name
+1	         Laptop
+1	         Phone
+1	         Laptop
+2	         Phone
+2	         Phone
+3	         Tablet
+3	         Laptop
+3	         Laptop
+Output:
+customer_id	customer_name	product_name	total_purchases
+1	         Aman	              Laptop	              2
+1	         Aman	              Phone	                  1
+1	         Aman	              Tablet	              0
+2	         Riya	              Laptop	              0
+2	         Riya	              Phone	                  2
+2	         Riya	              Tablet	              0
+3	         Kabir	              Laptop	              2
+3	         Kabir	              Phone	                  0
+3	         Kabir	              Tablet	              1
+4	         Neha	              Laptop	              0
+4	         Neha	              Phone	                  0
+4	        Neha	              Tablet	              0
+
+
+
+SELECT c.customer_id, c.customer_name, p.product_name, COUNT(pur.product_name) AS total_purchases
+FROM Customers c
+CROSS JOIN Products p
+LEFT JOIN Purchases pur
+ON c.customer_id = pur.customer_id
+AND p.product_name = pur.product_name
+GROUP BY c.customer_id, c.customer_name, p.product_name
+ORDER BY c.customer_id, p.product_name;
