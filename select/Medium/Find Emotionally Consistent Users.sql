@@ -79,17 +79,53 @@ The Results table is ordered by reaction_ratio in descending order, then by user
 
 
 1- 
-SELECT user_id, 
-       reaction AS dominant_reaction,
-       ROUND(COUNT(*) * 1.0 / total_reaction, 2) AS reaction_ratio
-FROM(
-     SELECT user_id,
-            reaction, 
-            COUNT(reaction) OVER (PARTITION BY user_id) AS total_reaction
-     FROM reactions
-) t
+SELECT
+  user_id,
+  reaction AS dominant_reaction,
+  ROUND(COUNT(*) * 1.0 / MAX(total_reaction), 2) AS reaction_ratio
+FROM (
+      SELECT user_id,
+             content_id,
+             reaction,
+             COUNT(*) OVER (PARTITION BY user_id) AS total_reaction
+      FROM reactions
+     ) t
 GROUP BY user_id, reaction
 HAVING MAX(total_reaction) >= 5
-   AND (COUNT(*) * 1.0 / MAX(total_reaction)) >= 0.60
+   AND COUNT(*) * 1.0 / MAX(total_reaction) >= 0.60
 ORDER BY reaction_ratio DESC, user_id ASC;
 
+
+
+
+2-
+WITH stats AS (
+  SELECT
+    user_id,
+    reaction,
+    COUNT(*) AS reaction_cnt,
+    SUM(COUNT(*)) OVER (PARTITION BY user_id) AS total_cnt
+  FROM reactions
+  GROUP BY user_id, reaction
+),
+ranked AS (
+  SELECT
+    user_id,
+    reaction AS dominant_reaction,
+    reaction_cnt,
+    total_cnt,
+    ROW_NUMBER() OVER (
+      PARTITION BY user_id
+      ORDER BY reaction_cnt DESC, reaction
+    ) AS rn
+  FROM stats
+)
+SELECT
+  user_id,
+  dominant_reaction,
+  ROUND(reaction_cnt * 1.0 / total_cnt, 2) AS reaction_ratio
+FROM ranked
+WHERE rn = 1
+  AND total_cnt >= 5
+  AND reaction_cnt * 1.0 / total_cnt >= 0.60
+ORDER BY reaction_ratio DESC, user_id ASC;
