@@ -111,7 +111,7 @@ SELECT lb.book_id,
        lb.publication_year,
        cte.current_borrowers
 FROM library_books lb
-LEFT JOIN cte
+JOIN cte
 ON lb.book_id = cte.book_id
 WHERE lb.total_copies = cte.current_borrowers
 ORDER BY cte.current_borrowers DESC, lb.title ASC;
